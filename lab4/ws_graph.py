@@ -4,6 +4,8 @@ __author__ = 'Jose Riera'
 
 import networkx as nx
 import random
+import numpy as np
+import graph_utils
 
 
 def generate_ws_graph(n_nodes, prob):
@@ -23,13 +25,32 @@ def generate_ws_graph(n_nodes, prob):
         origin_node = edge[0]
         random_node = random.randint(0, n_nodes - 1)
 
-        if random.random < prob:
-            ws_graph.remove_edge(edge)
+        rand_prob = random.random()
+
+        if rand_prob < prob:
+            ws_graph.remove_edge(*edge)
             ws_graph.add_edge(origin_node, random_node)
 
     return ws_graph
 
 
-def draw_graph(g):
-    nx.draw(g)
-    plt.show()
+def main():
+    n_nodes = 10
+
+    er = 0
+    prob = ((1 + er) * np.log(n_nodes)) / n_nodes
+
+    while prob < 1.0:
+        er_graph = generate_ws_graph(n_nodes, prob)
+
+        if not graph_utils.has_isolated_node(er_graph):
+            print('Graph IS connected!')
+            graph_utils.draw_graph(er_graph)
+
+            break
+        else:
+            print('Graph IS NOT connected!')
+
+            prob += 0.01
+
+main()
