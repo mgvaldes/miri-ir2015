@@ -34,23 +34,67 @@ def generate_ws_graph(n_nodes, prob):
     return ws_graph
 
 
-def main():
+def asp_and_cc_vs_p():
+    asp_and_cc_vs_p_dict = dict()
+    average_shortest_path_length = []
+    clustering_coefficient = []
+    probability = []
+
     n_nodes = 10
 
-    prob = np.log(n_nodes) / n_nodes
+    while True:
+        er = 0.3
 
-    while prob < 1.0:
-        ws_graph = generate_ws_graph(n_nodes, prob)
+        while True:
+            prob = ((1 + er) * np.log(n_nodes)) / n_nodes
 
-        if nx.is_connected(ws_graph):
-            print('Graph IS connected!')
-            graph_utils.draw_graph(ws_graph)
+            ws_graph = generate_ws_graph(n_nodes, prob)
 
-            break
+            if nx.is_connected(ws_graph):
+                print('Graph IS connected!')
+                # graph_utils.draw_graph(ws_graph)
+
+                break
+            else:
+                print('Graph IS NOT connected!')
+
+                er += 0.01
+
+        avg_shortest_path = nx.average_shortest_path_length(ws_graph)
+        average_shortest_path_length.append(avg_shortest_path)
+        print 'avg. shortest path length: ' + str(avg_shortest_path)
+
+        probability.append(prob)
+        print 'probability: ' + str(prob)
+
+        cc = 0 # Aqui hay que calcular el clustering coefficient
+        clustering_coefficient.append(cc)
+        print 'clustering coefficient: ' + str(cc)
+
+        if 10 <= n_nodes < 100:
+            n_nodes += 10
+        elif 100 <= n_nodes < 1000:
+            n_nodes += 100
+        elif 1000 <= n_nodes < 3000:
+            n_nodes += 200
+        elif 3000 <= n_nodes < 8000:
+            n_nodes += 500
         else:
-            print('Graph IS NOT connected!')
+            break
 
-            prob += 0.01
+    asp_and_cc_vs_p_dict['probability'] = probability
+    asp_and_cc_vs_p_dict['average_shortest_path_length'] = average_shortest_path_length
+    asp_and_cc_vs_p_dict['clustering_coefficient'] = clustering_coefficient
+
+    return asp_and_cc_vs_p_dict
+
+
+def main():
+    asp_and_cc_vs_p_dict = asp_and_cc_vs_p()
+
+    print asp_and_cc_vs_p_dict
+
+    # Aqui normalizas los arreglos y ploteas
 
 
 main()

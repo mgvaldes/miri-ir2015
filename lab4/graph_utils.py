@@ -26,5 +26,6 @@ def plot_avg_shortest_path_length_vs_nodes(avg_shortest_path_lengths, nodes):
     plt.xlabel('num nodes')
     plt.ylabel('average shortest path')
     plt.tight_layout()
+    plt.show()
 
-    pylab.savefig('/Users/gaby/Documents/MIRI/3rd_Semester/IR/miri-ir2015/lab4/avg_shortest_path_length_vs_nodes.png')
+    # pylab.savefig('/Users/gaby/Documents/MIRI/3rd_Semester/IR/miri-ir2015/lab4/avg_shortest_path_length_vs_nodes.png')
