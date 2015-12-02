@@ -4,6 +4,7 @@ __author__ = 'Jose Riera'
 
 import networkx as nx
 import matplotlib.pyplot as plt
+import pylab
 
 
 def draw_graph(g):
@@ -17,3 +18,13 @@ def has_isolated_node(g):
             return True
 
     return False
+
+
+def plot_avg_shortest_path_length_vs_nodes(avg_shortest_path_lengths, nodes):
+    plt.figure()
+    plt.plot(nodes, avg_shortest_path_lengths, 'bo', nodes, avg_shortest_path_lengths, 'k')
+    plt.xlabel('num nodes')
+    plt.ylabel('average shortest path')
+    plt.tight_layout()
+
+    pylab.savefig('/Users/gaby/Documents/MIRI/3rd_Semester/IR/miri-ir2015/lab4/avg_shortest_path_length_vs_nodes.png')

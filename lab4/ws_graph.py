@@ -37,20 +37,20 @@ def generate_ws_graph(n_nodes, prob):
 def main():
     n_nodes = 10
 
-    er = 0
-    prob = ((1 + er) * np.log(n_nodes)) / n_nodes
+    prob = np.log(n_nodes) / n_nodes
 
     while prob < 1.0:
-        er_graph = generate_ws_graph(n_nodes, prob)
+        ws_graph = generate_ws_graph(n_nodes, prob)
 
-        if not graph_utils.has_isolated_node(er_graph):
+        if nx.is_connected(ws_graph):
             print('Graph IS connected!')
-            graph_utils.draw_graph(er_graph)
+            graph_utils.draw_graph(ws_graph)
 
             break
         else:
             print('Graph IS NOT connected!')
 
             prob += 0.01
+
 
 main()
