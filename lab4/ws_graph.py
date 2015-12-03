@@ -62,8 +62,8 @@ def asp_and_cc_vs_p():
         prob += EPSILON
 
         avg_shortest_path = nx.average_shortest_path_length(ws_graph)
-        average_shortest_path_length.append(avg_shortest_path)
-        print 'avg. shortest path length: ' + str(avg_shortest_path)
+        average_shortest_path_length.append(float("{0:.2f}".format(avg_shortest_path)))
+        print 'avg. shortest path length: ' + str(float("{0:.2f}".format(avg_shortest_path)))
 
         probability.append(prob)
         print 'probability: ' + str(prob)
