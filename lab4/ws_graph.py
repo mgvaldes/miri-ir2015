@@ -7,6 +7,8 @@ import random
 import numpy as np
 import graph_utils
 
+N_NODES = 10
+EPSILON = 0.1
 
 def generate_ws_graph(n_nodes, prob):
     # Creating undirected graph
@@ -40,13 +42,11 @@ def asp_and_cc_vs_p():
     clustering_coefficient = []
     probability = []
 
-    n_nodes = 10
+    n_nodes = N_NODES
+    prob = 0.0
 
-    while True:
-        er = 0.3
-
+    while prob <= 1:
         while True:
-            prob = ((1 + er) * np.log(n_nodes)) / n_nodes
 
             ws_graph = generate_ws_graph(n_nodes, prob)
 
@@ -57,8 +57,9 @@ def asp_and_cc_vs_p():
                 break
             else:
                 print('Graph IS NOT connected!')
+                print 'Probability' + str(prob)
 
-                er += 0.01
+        prob += EPSILON
 
         avg_shortest_path = nx.average_shortest_path_length(ws_graph)
         average_shortest_path_length.append(float("{0:.2f}".format(avg_shortest_path)))
@@ -67,20 +68,10 @@ def asp_and_cc_vs_p():
         probability.append(prob)
         print 'probability: ' + str(prob)
 
-        cc = 0 # Aqui hay que calcular el clustering coefficient
+        cc = nx.average_clustering(ws_graph)
         clustering_coefficient.append(cc)
         print 'clustering coefficient: ' + str(cc)
 
-        if 10 <= n_nodes < 100:
-            n_nodes += 10
-        elif 100 <= n_nodes < 1000:
-            n_nodes += 100
-        elif 1000 <= n_nodes < 3000:
-            n_nodes += 200
-        elif 3000 <= n_nodes < 8000:
-            n_nodes += 500
-        else:
-            break
 
     asp_and_cc_vs_p_dict['probability'] = probability
     asp_and_cc_vs_p_dict['average_shortest_path_length'] = average_shortest_path_length
@@ -95,6 +86,12 @@ def main():
     print asp_and_cc_vs_p_dict
 
     # Aqui normalizas los arreglos y ploteas
+    norm = max(asp_and_cc_vs_p_dict['average_shortest_path_length'])
+    norm_asp = [float(x)/norm for x in asp_and_cc_vs_p_dict['average_shortest_path_length']]
+
+    print "Normalize =", norm_asp
+
+    graph_utils.plot_asp_and_cc_vs_p(norm_asp, asp_and_cc_vs_p_dict['clustering_coefficient'], asp_and_cc_vs_p_dict['probability'])
 
 
 main()

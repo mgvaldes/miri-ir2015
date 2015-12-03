@@ -29,3 +29,11 @@ def plot_avg_shortest_path_length_vs_nodes(avg_shortest_path_lengths, nodes):
     plt.show()
 
     # pylab.savefig('/Users/gaby/Documents/MIRI/3rd_Semester/IR/miri-ir2015/lab4/avg_shortest_path_length_vs_nodes.png')
+
+def plot_asp_and_cc_vs_p(asp, cc, p):
+    plt.figure()
+    plt.plot(asp, p, 'bo', linestyle='-')
+    plt.plot(cc, p, 'rs', linestyle='-')
+    plt.xlabel('p')
+    plt.tight_layout()
+    plt.show()
