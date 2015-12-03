@@ -7,7 +7,6 @@ __author__ = 'Jose Riera'
 import networkx as nx
 import random
 import numpy as np
-from time import time
 import graph_utils
 
 
@@ -37,10 +36,8 @@ def average_shortest_path_length_vs_network_size():
 
     n_nodes = 50
 
-    er = 0.01
-
     while True:
-        # start = time()
+        er = 0.25
 
         while True:
             prob = ((1 + er) * np.log(n_nodes)) / n_nodes
@@ -48,34 +45,19 @@ def average_shortest_path_length_vs_network_size():
             er_graph = generate_er_graph(n_nodes, prob)
 
             if nx.is_connected(er_graph):
-                print('Graph IS connected!')
-                # graph_utils.draw_graph(er_graph)
-
+                # Graph IS connected
                 break
             else:
-                print('Graph IS NOT connected!')
-
+                # Graph IS NOT connected
                 er += 0.01
 
-        # elapsed = time() - start
-        # print("done in %.3fs" % elapsed)
-        #
-        # if elapsed > 120:
-        #     break
-
         avg_shortest_path = nx.average_shortest_path_length(er_graph)
-
-        if average_shortest_path_length and float("{0:.4f}".format(avg_shortest_path)) < average_shortest_path_length[len(average_shortest_path_length) - 1]:
-            er = 0.01
-            n_nodes += 5
-
-            continue
 
         network_size.append(n_nodes)
         print '# of nodes: ' + str(n_nodes)
 
-        average_shortest_path_length.append(float("{0:.4f}".format(avg_shortest_path)))
-        print 'avg. shortest path length: ' + str(float("{0:.4f}".format(avg_shortest_path)))
+        average_shortest_path_length.append(float("{0:.2f}".format(avg_shortest_path)))
+        print 'avg. shortest path length: ' + str(float("{0:.2f}".format(avg_shortest_path)))
 
         # if 10 <= n_nodes < 100:
         #     n_nodes += 10
@@ -89,8 +71,6 @@ def average_shortest_path_length_vs_network_size():
             n_nodes += 500
         else:
             break
-
-        er = 0.01
 
     average_shortest_path_length_vs_network_size_dict['network_size'] = network_size
     average_shortest_path_length_vs_network_size_dict['average_shortest_path_length'] = average_shortest_path_length
