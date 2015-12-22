@@ -68,6 +68,10 @@ def create_hc(G):
     for n, p in zip(list(range(len(G))), membership):
         partition[p].append(n)
 
+    # [0, 179, 305]
+    print "Clustering [0, 179, 305]"
+    print l1[0][0], l1[179][0], l1[305][0]
+
     return list(partition.values())
 
 
