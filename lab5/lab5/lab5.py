@@ -11,7 +11,8 @@ from scipy.spatial import distance
 def create_graph_from_file():
     g = nx.Graph()
 
-    with open('/Users/gaby/Documents/MIRI/3rd_Semester/IR/Lab5/cosine_similarities.txt', 'rb') as csv_file:
+    # with open('/Users/gaby/Documents/MIRI/3rd_Semester/IR/Lab5/cosine_similarities.txt', 'rb') as csv_file:
+    with open('/home/jose/Projects/IR/lab5/cosine_similarities.txt', 'rb') as csv_file:
         # for row in f_reader:
         for row in csv.reader(csv_file.read().splitlines(), delimiter=';'):
             if float(row[2]) > 0.2:
@@ -46,9 +47,13 @@ def create_hc(G):
     path_length = nx.all_pairs_shortest_path_length(G)
     distances = numpy.zeros((len(G), len(G)))
 
-    for u, p in path_length.items():
-        for v, d in p.items():
-            distances[u][v] = d
+    l1 = sorted(path_length.items(),key=lambda x: x[0])
+    for u, p in l1:
+        l2 = sorted(p.items(),key=lambda x: x[0])
+        for v, d in l2:
+            x = getIndexOfTuple(l1, 0, u)
+            y = getIndexOfTuple(l2, 0, v)
+            distances[x][y] = d
 
     # Create hierarchical cluster
     Y = distance.squareform(distances)
@@ -64,6 +69,15 @@ def create_hc(G):
         partition[p].append(n)
 
     return list(partition.values())
+
+
+def getIndexOfTuple(l, index, value):
+    for pos,t in enumerate(l):
+        if t[index] == value:
+            return pos
+
+    # Matches behavior of list.index
+    raise ValueError("list.index(x): x not in list")
 
 
 def main():

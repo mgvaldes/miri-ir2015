@@ -7,9 +7,6 @@ import random
 import numpy as np
 import graph_utils
 
-N_NODES = 10
-EPSILON = 0.1
-
 def generate_ws_graph(n_nodes, prob):
     # Creating undirected graph
     ws_graph = nx.Graph()
@@ -20,8 +17,8 @@ def generate_ws_graph(n_nodes, prob):
 
     # Adding edges from each node to it's 4 closest nodes
     for i in range(n_nodes):
-        ws_graph.add_edge(i, (i + 1) % 10)
-        ws_graph.add_edge(i, (i + 2) % 10)
+        ws_graph.add_edge(i, (i + 1) % n_nodes)
+        ws_graph.add_edge(i, (i + 2) % n_nodes)
 
     for edge in ws_graph.edges():
         origin_node = edge[0]
@@ -31,12 +28,15 @@ def generate_ws_graph(n_nodes, prob):
 
         if rand_prob < prob:
             ws_graph.remove_edge(*edge)
-            ws_graph.add_edge(origin_node, random_node)
+            ws_graph .add_edge(origin_node, random_node)
 
     return ws_graph
 
 
 def asp_and_cc_vs_p():
+    N_NODES = 1000
+    EPSILON = 0.01
+
     asp_and_cc_vs_p_dict = dict()
     average_shortest_path_length = []
     clustering_coefficient = []
@@ -45,53 +45,53 @@ def asp_and_cc_vs_p():
     n_nodes = N_NODES
     prob = 0.0
 
+    c0 = None
+    l0 = None
+
     while prob <= 1:
-        while True:
+        ws_graph = nx.connected_watts_strogatz_graph(n_nodes, 4, prob)  # Using networkx for finding the graph
 
-            ws_graph = generate_ws_graph(n_nodes, prob)
-
-            if nx.is_connected(ws_graph):
-                print('Graph IS connected!')
-                # graph_utils.draw_graph(ws_graph)
-
-                break
-            else:
-                print('Graph IS NOT connected!')
-                print 'Probability' + str(prob)
-
-        prob += EPSILON
 
         avg_shortest_path = nx.average_shortest_path_length(ws_graph)
-        average_shortest_path_length.append(float("{0:.2f}".format(avg_shortest_path)))
+        average_shortest_path_length.append(float("{0:.2f}".format(avg_shortest_path)))  # Store shortest path of the graph
         print 'avg. shortest path length: ' + str(float("{0:.2f}".format(avg_shortest_path)))
 
-        probability.append(prob)
+        probability.append(prob)  # Store probability
         print 'probability: ' + str(prob)
 
         cc = nx.average_clustering(ws_graph)
-        clustering_coefficient.append(cc)
+        clustering_coefficient.append(cc)  # Store clustering coefficient
         print 'clustering coefficient: ' + str(cc)
+
+        if prob == 0.0:   #Only first iteration
+            c0 = cc
+            l0 = float("{0:.2f}".format(avg_shortest_path))
+
+
+        prob += EPSILON
 
 
     asp_and_cc_vs_p_dict['probability'] = probability
     asp_and_cc_vs_p_dict['average_shortest_path_length'] = average_shortest_path_length
     asp_and_cc_vs_p_dict['clustering_coefficient'] = clustering_coefficient
 
-    return asp_and_cc_vs_p_dict
+    return asp_and_cc_vs_p_dict, c0, l0
 
 
 def main():
-    asp_and_cc_vs_p_dict = asp_and_cc_vs_p()
+    asp_and_cc_vs_p_dict, c0, l0 = asp_and_cc_vs_p()
 
     print asp_and_cc_vs_p_dict
 
-    # Aqui normalizas los arreglos y ploteas
-    norm = max(asp_and_cc_vs_p_dict['average_shortest_path_length'])
-    norm_asp = [float(x)/norm for x in asp_and_cc_vs_p_dict['average_shortest_path_length']]
+    norm = max(asp_and_cc_vs_p_dict['average_shortest_path_length'])  # Prior try
+    norm_asp = [float(x)/l0 for x in asp_and_cc_vs_p_dict['average_shortest_path_length']]
 
-    print "Normalize =", norm_asp
+    norm = max(asp_and_cc_vs_p_dict['clustering_coefficient'])  # Prior try
+    norm_cc = [float(x)/c0 for x in asp_and_cc_vs_p_dict['clustering_coefficient']]
 
-    graph_utils.plot_asp_and_cc_vs_p(norm_asp, asp_and_cc_vs_p_dict['clustering_coefficient'], asp_and_cc_vs_p_dict['probability'])
+    norm_p = [x for x in asp_and_cc_vs_p_dict['probability']]  # Actually we are doing nothing
+
+    graph_utils.plot_asp_and_cc_vs_p(norm_asp, norm_cc, norm_p)
 
 
 main()
