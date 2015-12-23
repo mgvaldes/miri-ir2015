@@ -12,7 +12,7 @@ from scipy.spatial import distance
 def create_graph_from_file():
     g = nx.Graph()
 
-    with open('/Users/gaby/Documents/MIRI/3rd_Semester/IR/Lab5/cosine_similarities.txt', 'rb') as csv_file:
+    with open('/Users/gaby/Documents/MIRI/3rd_Semester/IR/miri-ir2015/lab5/cosine_similarities.txt', 'rb') as csv_file:
     # with open('/home/jose/Projects/IR/lab5/cosine_similarities.txt', 'rb') as csv_file:
         # for row in f_reader:
         for row in csv.reader(csv_file.read().splitlines(), delimiter=';'):
@@ -27,11 +27,11 @@ def create_graph_from_file():
 
     new_connected_graph = connected_comp_graphs[0]
 
-    # print("Number of nodes: " + str(new_connected_graph.number_of_nodes()))
-    # print("Number of edges: " + str(new_connected_graph.number_of_edges()))
-    # print("Number of connected components: " + str(nx.number_connected_components(new_connected_graph)))
-    # print("Is connected?: " + str(nx.is_connected(new_connected_graph)))
-    # print("Nodes: " + str(new_connected_graph.nodes()))
+    print("Number of nodes: " + str(new_connected_graph.number_of_nodes()))
+    print("Number of edges: " + str(new_connected_graph.number_of_edges()))
+    print("Number of connected components: " + str(nx.number_connected_components(new_connected_graph)))
+    print("Is connected?: " + str(nx.is_connected(new_connected_graph)))
+    print("Nodes: " + str(new_connected_graph.nodes()))
 
     return new_connected_graph
 
@@ -65,8 +65,8 @@ def create_hc(G):
         partition[p].append(n)
 
     # [0, 179, 305]
-    print "Clustering [0, 179, 305]"
-    print l1[0][0], l1[179][0], l1[305][0]
+    # print "Clustering [0, 179, 305]"
+    # print l1[0][0], l1[179][0], l1[305][0]
 
     return list(partition.values())
 
@@ -81,11 +81,14 @@ def get_index_of_tuple(l, index, value):
 
 
 def cluster_to_file(cluster_list, cluster_id):
-    cluster_file = open('../hc_clusters/cluster' + str(cluster_id) + ".txt", 'w')
+    cluster_file = open('../hc_clusters_clean/cluster' + str(cluster_id) + ".txt", 'w')
 
     for elem in cluster_list:
-        tweet_file = open('../tweets/tweet' + str(elem) + '.txt')
-        cluster_file.write(tweet_file.read() + '\n')
+        try:
+            tweet_file = open('../clean_tweets/tweet' + str(elem) + '.txt')
+            cluster_file.write(tweet_file.read() + '\n')
+        except IOError:
+            continue
 
 
 def main():
