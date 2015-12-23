@@ -1,4 +1,5 @@
-__author__ = 'gaby'
+__author__ = 'Maria Gabriela Valdes'
+__author__ = 'Jose Riera'
 
 import csv
 from collections import defaultdict
@@ -12,33 +13,26 @@ from matplotlib import pyplot as plt
 def create_graph_from_file():
     g = nx.Graph()
 
-    # with open('/Users/gaby/Documents/MIRI/3rd_Semester/IR/Lab5/cosine_similarities.txt', 'rb') as csv_file:
-    with open('/home/jose/Projects/IR/lab5/cosine_similarities.txt', 'rb') as csv_file:
+    with open('/Users/gaby/Documents/MIRI/3rd_Semester/IR/Lab5/cosine_similarities.txt', 'rb') as csv_file:
+    # with open('/home/jose/Projects/IR/lab5/cosine_similarities.txt', 'rb') as csv_file:
         # for row in f_reader:
         for row in csv.reader(csv_file.read().splitlines(), delimiter=';'):
             if float(row[2]) > 0.2:
                 g.add_edge(row[0].split(".")[0], row[1].split(".")[0])
 
-    print("Number of nodes: " + str(g.number_of_nodes()))
-    print("Number of edges: " + str(g.number_of_edges()))
-    print("Number of connected components: " + str(nx.number_connected_components(g)))
-
     con_comp = list(nx.connected_components(g))
     con_comp.sort(key=len, reverse=True)
-
-    print("Highest connected component: " + str(len(con_comp[0])))
-    print("Is connected?: " + str(nx.is_connected(g)))
 
     connected_comp_graphs = list(nx.connected_component_subgraphs(g, copy=True))
     connected_comp_graphs.sort(key=lambda gr: gr.number_of_nodes(), reverse=True)
 
     new_connected_graph = connected_comp_graphs[0]
 
-    print("Number of nodes: " + str(new_connected_graph.number_of_nodes()))
-    print("Number of edges: " + str(new_connected_graph.number_of_edges()))
-    print("Number of connected components: " + str(nx.number_connected_components(new_connected_graph)))
-    print("Is connected?: " + str(nx.is_connected(new_connected_graph)))
-    print("Nodes: " + str(new_connected_graph.nodes()))
+    # print("Number of nodes: " + str(new_connected_graph.number_of_nodes()))
+    # print("Number of edges: " + str(new_connected_graph.number_of_edges()))
+    # print("Number of connected components: " + str(nx.number_connected_components(new_connected_graph)))
+    # print("Is connected?: " + str(nx.is_connected(new_connected_graph)))
+    # print("Nodes: " + str(new_connected_graph.nodes()))
 
     return new_connected_graph
 
@@ -59,6 +53,7 @@ def create_hc(G):
         for v,d in p.items():
             distances[u][v]=d
 
+
     # Create hierarchical cluster
     Y = distance.squareform(distances)
     Z = hierarchy.complete(Y)  # Creates HC using farthest point linkage
@@ -74,20 +69,20 @@ def create_hc(G):
     )
     plt.show()
 
-    # # This partition selection is arbitrary, for illustrive purposes
-    # membership = list(hierarchy.fcluster(Z, t=1.15))
-    #
-    # # Create collection of lists for blockmodel
-    # partition = defaultdict(list)
-    #
-    # for n, p in zip(list(range(len(G))), membership):
-    #     partition[p].append(n)
-    #
-    # return list(partition.values())
+    # This partition selection is arbitrary, for illustrive purposes
+    membership = list(hierarchy.fcluster(Z, t=1.15))
+
+    # Create collection of lists for blockmodel
+    partition = defaultdict(list)
+
+    for n, p in zip(list(range(len(G))), membership):
+        partition[p].append(n)
+
+    return list(partition.values())
 
 
-def getIndexOfTuple(l, index, value):
-    for pos,t in enumerate(l):
+def get_index_of_tuple(l, index, value):
+    for pos, t in enumerate(l):
         if t[index] == value:
             return pos
 
@@ -95,13 +90,24 @@ def getIndexOfTuple(l, index, value):
     raise ValueError("list.index(x): x not in list")
 
 
+def cluster_to_file(cluster_list, cluster_id):
+    cluster_file = open('../hc_clusters/cluster' + str(cluster_id) + ".txt", 'w')
+
+    for elem in cluster_list:
+        tweet_file = open('../tweets/tweet' + str(elem) + '.txt')
+        cluster_file.write(tweet_file.read() + '\n')
+
+
 def main():
     g = create_graph_from_file()
 
     H=nx.convert_node_labels_to_integers(g)
 
-    partitions = create_hc(H)
-    # print partitions
+    hc_clusters = create_hc(g)
 
+    for i in range(0, len(hc_clusters)-1):
+        cluster_to_file(hc_clusters[i], i)
+
+    print hc_clusters
 
 main()
