@@ -7,6 +7,7 @@ import networkx as nx
 import numpy
 from scipy.cluster import hierarchy
 from scipy.spatial import distance
+from matplotlib import pyplot as plt
 
 
 def create_graph_from_file():
@@ -41,19 +42,32 @@ def create_hc(G):
     path_length = nx.all_pairs_shortest_path_length(G)
     distances = numpy.zeros((len(G), len(G)))
 
-    l1 = sorted(path_length.items(), key=lambda x: x[0])
+    # l1 = sorted(path_length.items(),key=lambda x: x[0])
+    # for u, p in l1:
+    #     l2 = sorted(p.items(),key=lambda x: x[0])
+    #     for v, d in l2:
+    #         x = getIndexOfTuple(l1, 0, u)
+    #         y = getIndexOfTuple(l2, 0, v)
+    #         distances[x][y] = d
+    for u,p in path_length.items():
+        for v,d in p.items():
+            distances[u][v]=d
 
-    for u, p in l1:
-        l2 = sorted(p.items(), key=lambda x: x[0])
-
-        for v, d in l2:
-            x = get_index_of_tuple(l1, 0, u)
-            y = get_index_of_tuple(l2, 0, v)
-            distances[x][y] = d
 
     # Create hierarchical cluster
     Y = distance.squareform(distances)
     Z = hierarchy.complete(Y)  # Creates HC using farthest point linkage
+
+    plt.figure(figsize=(25, 10))
+    plt.title('Hierarchical Clustering Dendrogram')
+    plt.xlabel('sample index')
+    plt.ylabel('distance')
+    hierarchy.dendrogram(
+        Z,
+        leaf_rotation=90.,  # rotates the x axis labels
+        leaf_font_size=8.,  # font size for the x axis labels
+    )
+    plt.show()
 
     # This partition selection is arbitrary, for illustrive purposes
     membership = list(hierarchy.fcluster(Z, t=1.15))
@@ -93,6 +107,8 @@ def cluster_to_file(cluster_list, cluster_id):
 
 def main():
     g = create_graph_from_file()
+
+    H=nx.convert_node_labels_to_integers(g)
 
     hc_clusters = create_hc(g)
 
