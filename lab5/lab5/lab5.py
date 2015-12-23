@@ -6,6 +6,7 @@ import networkx as nx
 import numpy
 from scipy.cluster import hierarchy
 from scipy.spatial import distance
+from matplotlib import pyplot as plt
 
 
 def create_graph_from_file():
@@ -47,32 +48,42 @@ def create_hc(G):
     path_length = nx.all_pairs_shortest_path_length(G)
     distances = numpy.zeros((len(G), len(G)))
 
-    l1 = sorted(path_length.items(),key=lambda x: x[0])
-    for u, p in l1:
-        l2 = sorted(p.items(),key=lambda x: x[0])
-        for v, d in l2:
-            x = getIndexOfTuple(l1, 0, u)
-            y = getIndexOfTuple(l2, 0, v)
-            distances[x][y] = d
+    # l1 = sorted(path_length.items(),key=lambda x: x[0])
+    # for u, p in l1:
+    #     l2 = sorted(p.items(),key=lambda x: x[0])
+    #     for v, d in l2:
+    #         x = getIndexOfTuple(l1, 0, u)
+    #         y = getIndexOfTuple(l2, 0, v)
+    #         distances[x][y] = d
+    for u,p in path_length.items():
+        for v,d in p.items():
+            distances[u][v]=d
 
     # Create hierarchical cluster
     Y = distance.squareform(distances)
     Z = hierarchy.complete(Y)  # Creates HC using farthest point linkage
 
-    # This partition selection is arbitrary, for illustrive purposes
-    membership = list(hierarchy.fcluster(Z, t=1.15))
+    plt.figure(figsize=(25, 10))
+    plt.title('Hierarchical Clustering Dendrogram')
+    plt.xlabel('sample index')
+    plt.ylabel('distance')
+    hierarchy.dendrogram(
+        Z,
+        leaf_rotation=90.,  # rotates the x axis labels
+        leaf_font_size=8.,  # font size for the x axis labels
+    )
+    plt.show()
 
-    # Create collection of lists for blockmodel
-    partition = defaultdict(list)
-
-    for n, p in zip(list(range(len(G))), membership):
-        partition[p].append(n)
-
-    # [0, 179, 305]
-    print "Clustering [0, 179, 305]"
-    print l1[0][0], l1[179][0], l1[305][0]
-
-    return list(partition.values())
+    # # This partition selection is arbitrary, for illustrive purposes
+    # membership = list(hierarchy.fcluster(Z, t=1.15))
+    #
+    # # Create collection of lists for blockmodel
+    # partition = defaultdict(list)
+    #
+    # for n, p in zip(list(range(len(G))), membership):
+    #     partition[p].append(n)
+    #
+    # return list(partition.values())
 
 
 def getIndexOfTuple(l, index, value):
@@ -87,7 +98,10 @@ def getIndexOfTuple(l, index, value):
 def main():
     g = create_graph_from_file()
 
-    print create_hc(g)
+    H=nx.convert_node_labels_to_integers(g)
+
+    partitions = create_hc(H)
+    # print partitions
 
 
 main()
