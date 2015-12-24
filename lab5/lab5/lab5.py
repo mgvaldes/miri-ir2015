@@ -28,11 +28,11 @@ def create_graph_from_file():
 
     new_connected_graph = connected_comp_graphs[0]
 
-    # print("Number of nodes: " + str(new_connected_graph.number_of_nodes()))
-    # print("Number of edges: " + str(new_connected_graph.number_of_edges()))
-    # print("Number of connected components: " + str(nx.number_connected_components(new_connected_graph)))
-    # print("Is connected?: " + str(nx.is_connected(new_connected_graph)))
-    # print("Nodes: " + str(new_connected_graph.nodes()))
+    print("Number of nodes: " + str(new_connected_graph.number_of_nodes()))
+    print("Number of edges: " + str(new_connected_graph.number_of_edges()))
+    print("Number of connected components: " + str(nx.number_connected_components(new_connected_graph)))
+    print("Is connected?: " + str(nx.is_connected(new_connected_graph)))
+    print("Nodes: " + str(new_connected_graph.nodes()))
 
     return new_connected_graph
 
@@ -78,6 +78,10 @@ def create_hc(G):
     for n, p in zip(list(range(len(G))), membership):
         partition[p].append(n)
 
+    # [0, 179, 305]
+    # print "Clustering [0, 179, 305]"
+    # print l1[0][0], l1[179][0], l1[305][0]
+
     return list(partition.values())
 
 
@@ -91,35 +95,14 @@ def get_index_of_tuple(l, index, value):
 
 
 def cluster_to_file(cluster_list, cluster_id):
-    cluster_file = open('../hc_clusters/cluster' + str(cluster_id) + ".txt", 'w')
+    cluster_file = open('../hc_clusters_clean/cluster' + str(cluster_id) + ".txt", 'w')
 
     for elem in cluster_list:
-        tweet_file = open('../tweets/tweet' + str(elem) + '.txt')
-        cluster_file.write(tweet_file.read() + '\n')
-
-
-def girvan_newman(G):
-    """ run the algorithm of Girvan + Newman up to the first separation
-        return: list of components of G, list of edges removed
-    """
-
-    # we're going to remove edges, so do it on a copy of the original graph
-    G = G.copy()
-
-    def find_best_edge(G0):
-        """ get the edge from G0 with highest betweenness centrality"""
-        eb = nx.edge_betweenness_centrality(G0)
-        edges = eb.keys()
-        return max(edges, key=lambda e: eb[e])
-
-    removed_edges = []
-    # Proceed until we separate the graph
-    while nx.number_connected_components(G) == 1:
-        u, v = find_best_edge(G)
-        G.remove_edge(u, v)
-        removed_edges.append((u, v))
-
-    return list(nx.connected_components(G)), removed_edges
+        try:
+            tweet_file = open('../clean_tweets/tweet' + str(elem) + '.txt')
+            cluster_file.write(tweet_file.read() + '\n')
+        except IOError:
+            continue
 
 
 def main():
@@ -129,14 +112,9 @@ def main():
 
     hc_clusters = create_hc(H)
 
-    # gn = girvan_newman(H)
-
-    # cliques = nx.find_cliques(H)
-    # clique = nx.k_clique_communities(H,cliques)
-
-    for i in range(0, len(hc_clusters)-1):
-        cluster_to_file(hc_clusters[i], i)
-
+    # for i in range(0, len(hc_clusters)-1):
+    #     cluster_to_file(hc_clusters[i], i)
+    #
     print hc_clusters
 
 main()
