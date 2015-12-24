@@ -13,8 +13,8 @@ from matplotlib import pyplot as plt
 def create_graph_from_file():
     g = nx.Graph()
 
-    with open('/Users/gaby/Documents/MIRI/3rd_Semester/IR/Lab5/cosine_similarities.txt', 'rb') as csv_file:
-    # with open('/home/jose/Projects/IR/lab5/cosine_similarities.txt', 'rb') as csv_file:
+    # with open('/Users/gaby/Documents/MIRI/3rd_Semester/IR/Lab5/cosine_similarities.txt', 'rb') as csv_file:
+    with open('/home/jose/Projects/IR/lab5/cosine_similarities.txt', 'rb') as csv_file:
         # for row in f_reader:
         for row in csv.reader(csv_file.read().splitlines(), delimiter=';'):
             if float(row[2]) > 0.2:
@@ -98,12 +98,41 @@ def cluster_to_file(cluster_list, cluster_id):
         cluster_file.write(tweet_file.read() + '\n')
 
 
+def girvan_newman(G):
+    """ run the algorithm of Girvan + Newman up to the first separation
+        return: list of components of G, list of edges removed
+    """
+
+    # we're going to remove edges, so do it on a copy of the original graph
+    G = G.copy()
+
+    def find_best_edge(G0):
+        """ get the edge from G0 with highest betweenness centrality"""
+        eb = nx.edge_betweenness_centrality(G0)
+        edges = eb.keys()
+        return max(edges, key=lambda e: eb[e])
+
+    removed_edges = []
+    # Proceed until we separate the graph
+    while nx.number_connected_components(G) == 1:
+        u, v = find_best_edge(G)
+        G.remove_edge(u, v)
+        removed_edges.append((u, v))
+
+    return list(nx.connected_components(G)), removed_edges
+
+
 def main():
     g = create_graph_from_file()
 
     H=nx.convert_node_labels_to_integers(g)
 
-    hc_clusters = create_hc(g)
+    hc_clusters = create_hc(H)
+
+    # gn = girvan_newman(H)
+
+    # cliques = nx.find_cliques(H)
+    # clique = nx.k_clique_communities(H,cliques)
 
     for i in range(0, len(hc_clusters)-1):
         cluster_to_file(hc_clusters[i], i)
