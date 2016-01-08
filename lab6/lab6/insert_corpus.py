@@ -15,10 +15,12 @@ def insert_document_to_corpus(file_name, class_name, db):
         text = []
         for line in f:
             for word in line.strip().split():
-                if word not in cached_stop_words:
-                    word = decode(word.strip(), 'latin2', 'ignore')
-                    word = re.sub(r'[^a-zA-Z ]', r'', word)
-                    text.append(word.lower())
+                word = decode(word.strip(), 'latin2', 'ignore')
+                word = re.sub(r'[^a-zA-Z ]', r'', word)
+                word = word.lower()
+
+                if word not in cached_stop_words and word != '':
+                    text.append(word)
 
         d = dict()
         d['content'] = text
