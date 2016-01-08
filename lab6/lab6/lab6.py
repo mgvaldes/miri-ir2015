@@ -12,37 +12,50 @@ __author__ = 'gaby'
 
 
 def load_corpus():
-    fortnow_corpus = []
-    random_corpus = []
-
-    while True:
-        if len(fortnow_corpus) < 30:
-            rand_fortnow = random.randint(1, 60)
-
-            if not rand_fortnow in fortnow_corpus:
-                fortnow_corpus.append(rand_fortnow)
-
-        if len(random_corpus) < 30:
-            rand_random = random.randint(1, 60)
-
-            if not rand_random in random_corpus:
-                random_corpus.append(rand_random)
-
-        if len(fortnow_corpus) == 30 and len(random_corpus) == 30:
-            break
-
+    # fortnow_corpus = []
+    # random_corpus = []
+    #
+    # while True:
+    #     if len(fortnow_corpus) < 30:
+    #         rand_fortnow = random.randint(1, 60)
+    #
+    #         if not rand_fortnow in fortnow_corpus:
+    #             fortnow_corpus.append(rand_fortnow)
+    #
+    #     if len(random_corpus) < 30:
+    #         rand_random = random.randint(1, 60)
+    #
+    #         if not rand_random in random_corpus:
+    #             random_corpus.append(rand_random)
+    #
+    #     if len(fortnow_corpus) == 30 and len(random_corpus) == 30:
+    #         break
+    #
+    # corpuses = dict()
+    #
+    # training_corpuses = dict()
+    # training_corpuses['fortnow'] = fortnow_corpus
+    # training_corpuses['random'] = random_corpus
+    #
+    # corpuses['training_corpuses'] = training_corpuses
+    #
+    # test_corpuses = dict()
+    # test_corpuses['fortnow'] = [x for x in range(1, 61) if x not in fortnow_corpus]
+    # test_corpuses['random'] = [x for x in range(1, 61) if x not in random_corpus]
+    #
+    # corpuses['test_corpuses'] = test_corpuses
 
     corpuses = dict()
 
     training_corpuses = dict()
-    training_corpuses['fortnow'] = fortnow_corpus
-    training_corpuses['random'] = random_corpus
+    training_corpuses['fortnow'] = range(1, 31)
+    training_corpuses['random'] = range(1, 31)
 
     corpuses['training_corpuses'] = training_corpuses
 
     test_corpuses = dict()
-    test_corpuses['fortnow'] = [x for x in range(1, 61) if x not in fortnow_corpus]
-    test_corpuses['random'] = [x for x in range(1, 61) if x not in random_corpus]
+    test_corpuses['fortnow'] = range(31, 61)
+    test_corpuses['random'] = range(31, 61)
 
     corpuses['test_corpuses'] = test_corpuses
 
@@ -52,49 +65,9 @@ def load_corpus():
     return corpuses
 
 
-def multinomial_naive_bayes_classifier(db_fortnow, db_random, words):
-    fortnow_num_docs = 30
-    random_num_docs = 30
-    total_training_num_docs = 60
-
-    # Finding total number of words occurring in documents of class 'fortnow'
-    cursor = db_fortnow.counts.aggregate( [ { "$group": { "_id": None, "totalCounts": { "$sum": "$value" } } } ] )
-
-    for document in cursor:
-        fortnow_total_num_occur_words = document["totalCounts"]
-
-    # Finding total number of words occurring in documents of class 'random'
-    cursor = db_random.counts.aggregate( [ { "$group": { "_id": None, "totalCounts": { "$sum": "$value" } } } ] )
-
-    for document in cursor:
-        random_total_num_occur_words = document["totalCounts"]
-
-    # Finding the size of the set of words of 'fortnow' class documents
-    cursor = db_fortnow.counts.find()
-
-    fortnow_total_num_words = cursor.count()
-
-    # fortnow_total_num_words = 0
-    #
-    # cursor = db_fortnow.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
-    #
-    # for document in cursor:
-    #     fortnow_total_num_words += document["numWords"]
-
-    # Finding the size of the set of words of 'random' class documents
-    cursor = db_random.counts.find()
-
-    random_total_num_words = cursor.count()
-
-    # random_total_num_words = 0
-    #
-    # cursor = db_random.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
-    #
-    # for document in cursor:
-    #     random_total_num_words += document["numWords"]
-
-    V = fortnow_total_num_words + random_total_num_words
-
+def multinomial_naive_bayes_classifier(db_fortnow, db_random, words, fortnow_num_docs, random_num_docs,
+                                       total_training_num_docs, fortnow_total_num_occur_words,
+                                       random_total_num_occur_words, V):
     # Calculating pred_class for 'fortnow'
     w_fortnow_probs = []
 
@@ -164,6 +137,63 @@ def main():
     print 'Document identifiers of each class assigned to test set: '
     print corpuses['test_corpuses']
 
+    fortnow_num_docs = 30
+    random_num_docs = 30
+    total_training_num_docs = 60
+
+    # Finding total number of words occurring in documents of class 'fortnow'
+    cursor = db_fortnow.counts.aggregate( [ { "$group": { "_id": None, "totalCounts": { "$sum": "$value" } } } ] )
+
+    for document in cursor:
+        fortnow_total_num_occur_words = document["totalCounts"]
+
+    # Finding total number of words occurring in documents of class 'random'
+    cursor = db_random.counts.aggregate( [ { "$group": { "_id": None, "totalCounts": { "$sum": "$value" } } } ] )
+
+    for document in cursor:
+        random_total_num_occur_words = document["totalCounts"]
+
+    # Finding the size of the set of words of 'fortnow' class documents
+    cursor = db_fortnow.corpus.find()
+    vocabulary = set()
+
+    for document in cursor:
+        vocabulary.update(document['content'])
+
+    # cursor = db_fortnow.counts.find()
+    #
+    # fortnow_total_num_words = cursor.count()
+
+    # fortnow_total_num_words = 0
+    #
+    # cursor = db_fortnow.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
+    #
+    # for document in cursor:
+    #     fortnow_total_num_words += document["numWords"]
+
+    # Finding the size of the set of words of 'random' class documents
+    cursor = db_random.corpus.find()
+
+    for document in cursor:
+        vocabulary.update(document['content'])
+
+    # cursor = db_random.counts.find()
+    #
+    # random_total_num_words = cursor.count()
+
+    # random_total_num_words = 0
+    #
+    # cursor = db_random.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
+    #
+    # for document in cursor:
+    #     random_total_num_words += document["numWords"]
+
+    V = len(vocabulary)
+
+    # V = fortnow_total_num_words + random_total_num_words
+
+    print "Vocabulary size: " + str(V)
+
     confussion_matrix = []
     fortnow_list = []
     random_list = []
@@ -181,7 +211,10 @@ def main():
                     word = re.sub(r'[^a-zA-Z ]', r'', word)
                     text.append(word.lower())
 
-            pred_class = multinomial_naive_bayes_classifier(db_fortnow, db_random, text)
+            pred_class = multinomial_naive_bayes_classifier(db_fortnow, db_random, text, fortnow_num_docs,
+                                                            random_num_docs, total_training_num_docs,
+                                                            fortnow_total_num_occur_words, random_total_num_occur_words,
+                                                            V)
 
             if pred_class == 'fortnow':
                 fortnow_count += 1
@@ -207,7 +240,10 @@ def main():
                     word = re.sub(r'[^a-zA-Z ]', r'', word)
                     text.append(word.lower())
 
-            pred_class = multinomial_naive_bayes_classifier(db_fortnow, db_random, text)
+            pred_class = multinomial_naive_bayes_classifier(db_fortnow, db_random, text, fortnow_num_docs,
+                                                            random_num_docs, total_training_num_docs,
+                                                            fortnow_total_num_occur_words, random_total_num_occur_words,
+                                                            V)
 
             if pred_class == 'fortnow':
                 fortnow_count += 1
