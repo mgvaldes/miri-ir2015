@@ -70,20 +70,28 @@ def multinomial_naive_bayes_classifier(db_fortnow, db_random, words):
         random_total_num_occur_words = document["totalCounts"]
 
     # Finding the size of the set of words of 'fortnow' class documents
-    fortnow_total_num_words = 0
+    cursor = db_fortnow.counts.find()
 
-    cursor = db_fortnow.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
+    fortnow_total_num_words = cursor.count()
 
-    for document in cursor:
-        fortnow_total_num_words += document["numWords"]
+    # fortnow_total_num_words = 0
+    #
+    # cursor = db_fortnow.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
+    #
+    # for document in cursor:
+    #     fortnow_total_num_words += document["numWords"]
 
     # Finding the size of the set of words of 'random' class documents
-    random_total_num_words = 0
+    cursor = db_random.counts.find()
 
-    cursor = db_random.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
+    random_total_num_words = cursor.count()
 
-    for document in cursor:
-        random_total_num_words += document["numWords"]
+    # random_total_num_words = 0
+    #
+    # cursor = db_random.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
+    #
+    # for document in cursor:
+    #     random_total_num_words += document["numWords"]
 
     V = fortnow_total_num_words + random_total_num_words
 
@@ -212,7 +220,7 @@ def main():
     confussion_matrix.append(random_list)
 
     print 'Confussion matrix:'
-    print '          fortnow  random'
+    print '          fortnow   random'
     print '------------------------------'
     print 'fortnow   ' + str(confussion_matrix[0][0]) + '        ' + str(confussion_matrix[0][1])
     print 'random    ' + str(confussion_matrix[1][0]) + '        ' + str(confussion_matrix[1][1])
