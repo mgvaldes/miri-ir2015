@@ -13,8 +13,8 @@ from matplotlib import pyplot as plt
 def create_graph_from_file():
     g = nx.Graph()
 
-    with open('/Users/gaby/Documents/MIRI/3rd_Semester/IR/miri-ir2015/lab5/cosine_similarities.txt', 'rb') as csv_file:
-    # with open('/home/jose/Projects/IR/lab5/cosine_similarities.txt', 'rb') as csv_file:
+    # with open('/Users/gaby/Documents/MIRI/3rd_Semester/IR/Lab5/cosine_similarities.txt', 'rb') as csv_file:
+    with open('/home/jose/Projects/IR/lab5/cosine_similarities.txt', 'rb') as csv_file:
         # for row in f_reader:
         for row in csv.reader(csv_file.read().splitlines(), delimiter=';'):
             if float(row[2]) > 0.2:
@@ -110,11 +110,11 @@ def main():
 
     H=nx.convert_node_labels_to_integers(g)
 
-    hc_clusters = create_hc(g)
+    hc_clusters = create_hc(H)
 
-    for i in range(0, len(hc_clusters)-1):
-        cluster_to_file(hc_clusters[i], i)
-
+    # for i in range(0, len(hc_clusters)-1):
+    #     cluster_to_file(hc_clusters[i], i)
+    #
     print hc_clusters
 
 main()
