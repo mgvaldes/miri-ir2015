@@ -6,7 +6,7 @@ from nltk.corpus import stopwords
 # from pymongo import MongoClient
 
 
-def insert_document_to_corpus(file_name, class_name, db):
+def insert_document_to_corpus(file_name, db):
     # conn = MongoClient()
     # db = conn.foo
     cached_stop_words = stopwords.words("english")
@@ -24,5 +24,4 @@ def insert_document_to_corpus(file_name, class_name, db):
 
         d = dict()
         d['content'] = text
-        d['class'] = class_name
         db.corpus.insert(d)

@@ -6,127 +6,56 @@ from bson.code import Code
 # conn = MongoClient()
 # db = conn.foo
 
-
-def run_map_reduce(db):
-    mapper = Code(
-        """
-            function () {
-                for (var i = 0; i < this.content.length; i++) {
-                    emit(this.content[i], 1);
-                }
+count_ocurrences_of_each_word_mapper = Code(
+    """
+        function () {
+            for (var i = 0; i < this.content.length; i++) {
+                emit(this.content[i], 1);
             }
-        """
-    )
+        }
+    """
+)
 
-    reducer = Code(
-        """
-            function (key , values) {
-                var total = 0;
-
-                for (var i = 0; i < values.length; i++) {
-                    total += values[i];
-                }
-
-                return total;
+count_total_words_in_class_corpus_mapper = Code(
+    """
+        function () {
+            for (var i = 0; i < this.content.length; i++) {
+                emit("total_words", 1);
             }
-        """
-    )
+        }
+    """
+)
 
-    r = db.corpus.map_reduce(mapper, reducer, "counts")
+count_total_words_in_whole_corpus_mapper = Code(
+    """
+        function () {
+            emit("total_words", 1);
+        }
+    """
+)
 
+reducer = Code(
+    """
+        function (key , values) {
+            var total = 0;
 
-def count_words_per_class_map_reduce(db):
-    mapper = Code(
-        """
-            function () {
-                for (var i = 0; i < this.content.length; i++) {
-                    if (this.class == "fortnow"){
-                        emit("totalWords", 1);
-                    }
-                    if (this.class == "random"){
-                        emit("totalWords", 1);
-                    }
-                }
+            for (var i = 0; i < values.length; i++) {
+                total += values[i];
             }
-        """
-    )
 
-    reducer = Code(
-        """
-            function (key , values) {
-                var total = 0;
-
-                for (var i = 0; i < values.length; i++) {
-                    total += values[i];
-                }
-
-                return total;
-            }
-        """
-    )
-
-    r = db.corpus.map_reduce(mapper, reducer, "counts")
+            return total;
+        }
+    """
+)
 
 
-def count_words_fortnow_map_reduce(db):
-    mapper = Code(
-        """
-            function () {
-                for (var i = 0; i < this.content.length; i++) {
-                    if (this.class == "fortnow"){
-                        emit(this.content[i], 1);
-                    }
-                }
-            }
-        """
-    )
-
-    reducer = Code(
-        """
-            function (key , values) {
-                var total = 0;
-
-                for (var i = 0; i < values.length; i++) {
-                    total += values[i];
-                }
-
-                return total;
-            }
-        """
-    )
-
-    r = db.corpus.map_reduce(mapper, reducer, "counts")
+def run_count_num_occurrences_map_reduce(db):
+    r = db.corpus.map_reduce(count_total_words_in_class_corpus_mapper, reducer, "count_num_occurrences")
 
 
-def count_words_random_map_reduce(db):
-    mapper = Code(
-        """
-            function () {
-                for (var i = 0; i < this.content.length; i++) {
-                    if (this.class == "random"){
-                        emit(this.content[i], 1);
-                    }
-                }
-            }
-        """
-    )
-
-    reducer = Code(
-        """
-            function (key , values) {
-                var total = 0;
-
-                for (var i = 0; i < values.length; i++) {
-                    total += values[i];
-                }
-
-                return total;
-            }
-        """
-    )
-
-    r = db.corpus.map_reduce(mapper, reducer, "counts")
+def run_count_ocurrences_of_each_word_map_reduce(db):
+    r = db.corpus.map_reduce(count_ocurrences_of_each_word_mapper, reducer, "counts")
 
 
-# db.counts.find().sort({"value": -1})
-
+def run_count_total_num_occurrences_map_reduce(db):
+    r = db.counts.map_reduce(count_total_words_in_whole_corpus_mapper, reducer, "total_counts")

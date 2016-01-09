@@ -1,6 +1,7 @@
 from __future__ import division
 from pymongo import MongoClient
 from codecs import decode
+from nltk.corpus import stopwords
 import random
 import insert_corpus
 import map_reduce
@@ -108,6 +109,8 @@ def main():
 
     conn = MongoClient()
 
+    db_all_corpus = conn.all_corpus
+
     ########################################
     # FORTNOW CLASS DOCUMENTS
     ########################################
@@ -115,10 +118,12 @@ def main():
     db_fortnow = conn.fortnow
 
     for doc_id in corpuses['training_corpuses']['fortnow']:
-        insert_corpus.insert_document_to_corpus("../blogfiles/fortnow" + str(doc_id) + ".txt", 'fortnow', db_fortnow)
+        insert_corpus.insert_document_to_corpus("../blogfiles/fortnow" + str(doc_id) + ".txt", db_fortnow)
+        insert_corpus.insert_document_to_corpus("../blogfiles/fortnow" + str(doc_id) + ".txt", db_all_corpus)
 
-    print "Performing map-reduce to 'fortnow' collection..."
-    map_reduce.run_map_reduce(db_fortnow)
+    print "Performing map-reduce to count word ocurrences of 'fortnow' class collection..."
+    # map_reduce.run_map_reduce(db_fortnow)
+    map_reduce.run_count_ocurrences_of_each_word_map_reduce(db_fortnow)
 
     ########################################
     # RANDOM CLASS DOCUMENTS
@@ -127,10 +132,12 @@ def main():
     db_random = conn.random
 
     for doc_id in corpuses['training_corpuses']['random']:
-        insert_corpus.insert_document_to_corpus("../blogfiles/random" + str(doc_id) + ".txt", 'random', db_random)
+        insert_corpus.insert_document_to_corpus("../blogfiles/random" + str(doc_id) + ".txt", db_random)
+        insert_corpus.insert_document_to_corpus("../blogfiles/random" + str(doc_id) + ".txt", db_all_corpus)
 
-    print "Performing map-reduce to 'random' collection..."
-    map_reduce.run_map_reduce(db_random)
+    print "Performing map-reduce to count word ocurrences of 'random' class collection..."
+    # map_reduce.run_map_reduce(db_random)
+    map_reduce.run_count_ocurrences_of_each_word_map_reduce(db_random)
 
     print 'Loading test set...'
 
@@ -142,63 +149,102 @@ def main():
     total_training_num_docs = 60
 
     # Finding total number of words occurring in documents of class 'fortnow'
-    cursor = db_fortnow.counts.aggregate( [ { "$group": { "_id": None, "totalCounts": { "$sum": "$value" } } } ] )
+    print "Performing map-reduce to count total number of words on 'fortnow' class collection..."
+    map_reduce.run_count_num_occurrences_map_reduce(db_fortnow)
+    # map_reduce.run_count_total_num_occurrences_map_reduce(db_fortnow)
+
+    cursor = db_fortnow.count_num_occurrences.find()
+    # cursor = db_fortnow.total_counts.find()
 
     for document in cursor:
-        fortnow_total_num_occur_words = document["totalCounts"]
+        fortnow_total_num_occur_words = document['value']
+
+    print "Number of word occurrences within documents of 'fortnow' class: " + str(fortnow_total_num_occur_words)
 
     # Finding total number of words occurring in documents of class 'random'
-    cursor = db_random.counts.aggregate( [ { "$group": { "_id": None, "totalCounts": { "$sum": "$value" } } } ] )
+    print "Performing map-reduce to count total number of words on 'random' class collection..."
+    map_reduce.run_count_num_occurrences_map_reduce(db_random)
+    # map_reduce.run_count_total_num_occurrences_map_reduce(db_random)
+
+    cursor = db_random.count_num_occurrences.find()
+    # cursor = db_random.total_counts.find()
 
     for document in cursor:
-        random_total_num_occur_words = document["totalCounts"]
+        random_total_num_occur_words = document['value']
 
-    # Finding the size of the set of words of 'fortnow' class documents
-    cursor = db_fortnow.corpus.find()
-    vocabulary = set()
+    print "Number of word occurrences within documents of 'random' class: " + str(random_total_num_occur_words)
 
-    for document in cursor:
-        vocabulary.update(document['content'])
+    print "Performing map-reduce to count word ocurrences of all collection..."
+    map_reduce.run_count_ocurrences_of_each_word_map_reduce(db_all_corpus)
 
-    # cursor = db_fortnow.counts.find()
-    #
-    # fortnow_total_num_words = cursor.count()
+    print "Performing map-reduce to count total number of words on all collection..."
+    map_reduce.run_count_total_num_occurrences_map_reduce(db_all_corpus)
 
-    # fortnow_total_num_words = 0
-    #
-    # cursor = db_fortnow.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
-    #
-    # for document in cursor:
-    #     fortnow_total_num_words += document["numWords"]
-
-    # Finding the size of the set of words of 'random' class documents
-    cursor = db_random.corpus.find()
+    cursor = db_all_corpus.total_counts.find()
 
     for document in cursor:
-        vocabulary.update(document['content'])
-
-    # cursor = db_random.counts.find()
-    #
-    # random_total_num_words = cursor.count()
-
-    # random_total_num_words = 0
-    #
-    # cursor = db_random.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
-    #
-    # for document in cursor:
-    #     random_total_num_words += document["numWords"]
-
-    V = len(vocabulary)
-
-    # V = fortnow_total_num_words + random_total_num_words
+        V = document['value']
 
     print "Vocabulary size: " + str(V)
 
+    # cursor = db_fortnow.counts.aggregate( [ { "$group": { "_id": None, "totalCounts": { "$sum": "$value" } } } ] )
+    #
+    # for document in cursor:
+    #     fortnow_total_num_occur_words = document["totalCounts"]
+    #
+    # cursor = db_random.counts.aggregate( [ { "$group": { "_id": None, "totalCounts": { "$sum": "$value" } } } ] )
+    #
+    # for document in cursor:
+    #     random_total_num_occur_words = document["totalCounts"]
+    #
+    # # Finding the size of the set of words of 'fortnow' class documents
+    # cursor = db_fortnow.corpus.find()
+    # vocabulary = set()
+    #
+    # for document in cursor:
+    #     vocabulary.update(document['content'])
+    #
+    # # cursor = db_fortnow.counts.find()
+    # #
+    # # fortnow_total_num_words = cursor.count()
+    #
+    # # fortnow_total_num_words = 0
+    # #
+    # # cursor = db_fortnow.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
+    # #
+    # # for document in cursor:
+    # #     fortnow_total_num_words += document["numWords"]
+    #
+    # # Finding the size of the set of words of 'random' class documents
+    # cursor = db_random.corpus.find()
+    #
+    # for document in cursor:
+    #     vocabulary.update(document['content'])
+    #
+    # # cursor = db_random.counts.find()
+    # #
+    # # random_total_num_words = cursor.count()
+    #
+    # # random_total_num_words = 0
+    # #
+    # # cursor = db_random.corpus.aggregate( [ { "$project": { "numWords": { "$size": "$content" } } } ] )
+    # #
+    # # for document in cursor:
+    # #     random_total_num_words += document["numWords"]
+    #
+    # V = len(vocabulary)
+    #
+    # # V = fortnow_total_num_words + random_total_num_words
+    #
+    # print "Vocabulary size: " + str(V)
+    #
     confussion_matrix = []
     fortnow_list = []
     random_list = []
     fortnow_count = 0
     random_count = 0
+
+    cached_stop_words = stopwords.words("english")
 
     for doc_id in corpuses['test_corpuses']['fortnow']:
         test_file_path = "../blogfiles/fortnow" + str(doc_id) + ".txt"
@@ -209,7 +255,10 @@ def main():
                 for word in line.strip().split():
                     word = decode(word.strip(), 'latin2', 'ignore')
                     word = re.sub(r'[^a-zA-Z ]', r'', word)
-                    text.append(word.lower())
+                    word = word.lower()
+
+                    if word not in cached_stop_words and word != '':
+                        text.append(word)
 
             pred_class = multinomial_naive_bayes_classifier(db_fortnow, db_random, text, fortnow_num_docs,
                                                             random_num_docs, total_training_num_docs,
@@ -238,7 +287,10 @@ def main():
                 for word in line.strip().split():
                     word = decode(word.strip(), 'latin2', 'ignore')
                     word = re.sub(r'[^a-zA-Z ]', r'', word)
-                    text.append(word.lower())
+                    word = word.lower()
+
+                    if word not in cached_stop_words and word != '':
+                        text.append(word)
 
             pred_class = multinomial_naive_bayes_classifier(db_fortnow, db_random, text, fortnow_num_docs,
                                                             random_num_docs, total_training_num_docs,
@@ -260,50 +312,58 @@ def main():
     print '------------------------------'
     print 'fortnow   ' + str(confussion_matrix[0][0]) + '        ' + str(confussion_matrix[0][1])
     print 'random    ' + str(confussion_matrix[1][0]) + '        ' + str(confussion_matrix[1][1])
-    # print confussion_matrix
-
-    # ESTO LO HABIA HECHO PARA HACER LAS PREDICCIONES 'INTERACTIVAMENTE'
-    # PERO DESPUES LEI QUE HABIA QUE HACER LA PREDICCION DE TODO EL TEST
-    # SET PARA HACER LA CONFUSSION MATRIX.
-    # while True:
-    #     user_input = raw_input("Enter test file identifier, (Select only an identifier from the previous list) "
-    #                            "followed by the class name ('fortnow' or 'random'). Type 'exit' to exit the application: ")
+    # # print confussion_matrix
     #
-    #     if user_input == 'exit':
-    #         break
-    #     else:
-    #         user_input_list = user_input.split()
+    # # ESTO LO HABIA HECHO PARA HACER LAS PREDICCIONES 'INTERACTIVAMENTE'
+    # # PERO DESPUES LEI QUE HABIA QUE HACER LA PREDICCION DE TODO EL TEST
+    # # SET PARA HACER LA CONFUSSION MATRIX.
+    # # while True:
+    # #     user_input = raw_input("Enter test file identifier, (Select only an identifier from the previous list) "
+    # #                            "followed by the class name ('fortnow' or 'random'). Type 'exit' to exit the application: ")
+    # #
+    # #     if user_input == 'exit':
+    # #         break
+    # #     else:
+    # #         user_input_list = user_input.split()
+    # #
+    # #         if len(user_input_list) == 2:
+    # #             test_file_id = user_input_list[0]
+    # #             test_file_class = user_input_list[1]
+    # #
+    # #             if test_file_class == 'fortnow' or test_file_class == 'random':
+    # #                 if test_file_class == 'fortnow':
+    # #                     test_file_path = "../blogfiles/fortnow" + str(corpuses['test_corpuses']['fortnow'][int(test_file_id)]) + ".txt"
+    # #                 elif test_file_class == 'random':
+    # #                     test_file_path = "../blogfiles/random" + str(corpuses['test_corpuses']['random'][int(test_file_id)]) + ".txt"
+    # #
+    # #                 with open(test_file_path) as f:
+    # #                     text = []
+    # #                     for line in f:
+    # #                         for word in line.strip().split():
+    # #                             word = decode(word.strip(), 'latin2', 'ignore')
+    # #                             word = re.sub(r'[^a-zA-Z ]', r'', word)
+    # #                             text.append(word.lower())
+    # #
+    # #                     print 'Predicted class: ' + multinomial_naive_bayes_classifier(db_fortnow, db_random, text)
+    # #             else:
+    # #                 print 'You entered an invalid class name. Please try again...'
+    # #         else:
+    # #             print 'You are missing an argument. Please try again...'
     #
-    #         if len(user_input_list) == 2:
-    #             test_file_id = user_input_list[0]
-    #             test_file_class = user_input_list[1]
-    #
-    #             if test_file_class == 'fortnow' or test_file_class == 'random':
-    #                 if test_file_class == 'fortnow':
-    #                     test_file_path = "../blogfiles/fortnow" + str(corpuses['test_corpuses']['fortnow'][int(test_file_id)]) + ".txt"
-    #                 elif test_file_class == 'random':
-    #                     test_file_path = "../blogfiles/random" + str(corpuses['test_corpuses']['random'][int(test_file_id)]) + ".txt"
-    #
-    #                 with open(test_file_path) as f:
-    #                     text = []
-    #                     for line in f:
-    #                         for word in line.strip().split():
-    #                             word = decode(word.strip(), 'latin2', 'ignore')
-    #                             word = re.sub(r'[^a-zA-Z ]', r'', word)
-    #                             text.append(word.lower())
-    #
-    #                     print 'Predicted class: ' + multinomial_naive_bayes_classifier(db_fortnow, db_random, text)
-    #             else:
-    #                 print 'You entered an invalid class name. Please try again...'
-    #         else:
-    #             print 'You are missing an argument. Please try again...'
-
     print 'Dropping all training and test sets...'
     db_fortnow.corpus.drop()
     db_fortnow.counts.drop()
+    db_fortnow.count_num_occurrences.drop()
+    # db_fortnow.total_counts.drop()
 
     db_random.corpus.drop()
     db_random.counts.drop()
+    db_random.count_num_occurrences.drop()
+    # db_random.total_counts.drop()
+
+    db_all_corpus.corpus.drop()
+    db_all_corpus.counts.drop()
+    db_all_corpus.total_counts.drop()
 
     conn.close()
 
